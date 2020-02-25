@@ -119,7 +119,7 @@ def getAppsData(sheet, detailed):
 	return app_details
 
 	# sh.write(i, 0, sheet.cell_value(i, 0))
-# 
+	# 
 	# if app_id == '':
 		# print (app_name + "- SKIPPED!")
 		# continue
