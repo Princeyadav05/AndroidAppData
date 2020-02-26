@@ -26,21 +26,17 @@ def setExcelHeaders():
 	sh.write(0, 6, "Description")
 	sh.write(0, 7, "URL")
 
+def saveScreenshots(app_screenshots, app_name, numberOfScreenshots):
+	print("Saving Screenshots for " + app_name)
+	for i in range(0, numberOfScreenshots):
+		image_name = "Screenshots/" + app_name + " - " + str(i+1); 
+		f = open(image_name,'wb')
+		f.write(urllib.request.urlopen(app_screenshots[i]).read())
+		f.close()
+		
+
 def writeDataInExcel(appsData):
 	setExcelHeaders()
-
-	## App Screenshot ##
-	# app_screenshots = []
-	# app_screenshots = app_details['screenshots']
-	# image_name = "Screenshots/" + app_name + " - 1" 
-	# f = open(image_name,'wb')
-	# f.write(urllib.request.urlopen(app_screenshots[0]).read())
-	# f.close()
-
-	# image_name = "Screenshots/" + app_name + " - 2" 
-	# f = open(image_name,'wb')
-	# f.write(urllib.request.urlopen(app_screenshots[1]).read())
-	# f.close
 
 	print("\nWriting Data to Excel File...\n")
 
@@ -53,6 +49,12 @@ def writeDataInExcel(appsData):
 		sh.write(i+1, 5, appsData[i]['installs'])
 		sh.write(i+1, 6, appsData[i]['description'])
 		sh.write(i+1, 7, appsData[i]['url'])
+
+		## App Screenshot ##
+		app_screenshots = appsData[i]['screenshots']
+		numberOfScreenshots = 2
+		# saveScreenshots(app_screenshots, appsData[i]['title'], numberOfScreenshots)
+
 		print(appsData[i]['title'] + " - DONE!")
 
 	print("\nSaving Excel File...")
@@ -86,12 +88,10 @@ def displayTable(searchResults, noOfRowsToDisplay=5, detailed=False):
 
 	table.align['Title'] = "l"
 	table.align['Downloads'] = "r"
-	print("\nSearch Results for " + searchResults[0]['title'] + ": \n")
 	print(table.get_string())
 
 def getAppsData(sheet, detailed):
 	app_details = []
-	print(detailed)
 	for i in range(1, sheet.nrows):
 		# app_id = sheet.cell_value(i, 1)
 		app_name = sheet.cell_value(i, 0)
@@ -99,30 +99,32 @@ def getAppsData(sheet, detailed):
 
 		if detailed:
 			searchResults = play_scraper.search(app_name, page=1, detailed=detailed)
+			print("\nSearch Results for " + app_name + ": \n")
 			displayTable(searchResults, noOfRowsToDisplay=10, detailed=detailed)
 
-			selectedApp = int((input("\nPlease Select your App: ")))
-			print("\nSaved Data for " + searchResults[selectedApp - 1]['title'] + ".")
-
-			app_details.append(searchResults[selectedApp - 1])
+			selectedApp = int((input("\nPlease Select your App (0 -> if your app is not listed): ")))
+			if selectedApp == 0:
+				print (app_name + " - SKIPPED!")
+				continue
+			else:
+				print("\nSaved Data for " + searchResults[selectedApp - 1]['title'] + ".")
+				app_details.append(searchResults[selectedApp - 1])
 
 		else:
 			searchResults =  play_scraper.search(app_name, page=1)
+			print("\nSearch Results for " + app_name + ": \n")
 			displayTable(searchResults, noOfRowsToDisplay=10)
 
-			selectedApp = int((input("\nPlease Select your App: ")))
-			print("\nSaved Data for " + searchResults[selectedApp - 1]['title'] + ".")
-
-			appId = searchResults[selectedApp - 1]['app_id']
-			app_details.append(play_scraper.details(appId))
+			selectedApp = int((input("\nPlease Select your App (0 -> if your app is not listed): ")))
+			if selectedApp == 0:
+				print (app_name + " - SKIPPED!")
+				continue
+			else:
+				print("\nSaved Data for " + searchResults[selectedApp - 1]['title'] + ".")
+				appId = searchResults[selectedApp - 1]['app_id']
+				app_details.append(play_scraper.details(appId))
 		
 	return app_details
-
-	# sh.write(i, 0, sheet.cell_value(i, 0))
-	# 
-	# if app_id == '':
-		# print (app_name + "- SKIPPED!")
-		# continue
 
 detailed = True
 appsData = getAppsData(sheet, detailed)
